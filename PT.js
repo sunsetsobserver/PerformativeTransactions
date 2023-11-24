@@ -1,39 +1,41 @@
-class PerformativeTransaction {
-    constructor(previousPT, transformations) {
-        this.previousPT = previousPT;
-        this.transformations = transformations; // Array of arrays of functions
+class PerformativeTransaction{
+    constructor(inputSpace, transformations) {
+        this.inputSpace = inputSpace; // inputSpace is typically an executed Performative Transaction
+        this.transformations = transformations; // Object with feature names mapped to transformation functions
     }
 
-    execute(startValues, steps) {
-        let results = [startValues];
-        let currentPT = this.previousPT;
+    execute(params) { // params object provides startValues and steps for each feature that should be executed, selecting them by key name, for ex. { pitch: [60, 12] }
+        
+        let result = {}; // result is an object of keys and transformations
 
-        for (let i = 0; i < steps; i++) {
-            let lastValues = results[results.length - 1];
-            let transformedValues = lastValues.map((value, index) => {
-                let transformFunction = this.transformations[index][i % this.transformations[index].length];
-                return transformFunction(value, currentPT);
-            });
-            results.push(transformedValues);
+        const commonKeys = Object.keys(this.inputSpace).filter(key => Object.keys(this.transformations).includes(key) && Object.keys(params).includes(key));
+        //console.log(commonKeys);
+
+        for(let i=0; i<commonKeys.length; i++){ // for each parameter selected by the user which is being transformed by this transformation
+
+            let thiskey = commonKeys[i];
+            for(let j=0; j<params.thiskey.steps; j++){ // take the number of steps specified by the user for this transformation
+
+                // here encode a recurrent pattern of transformation on top of recurrent input feature space
+                // add modified features to the result
+            }
         }
 
-        return results;
+        return result; //the function should return and object of keys and transformations
     }
 }
 
-// Example Usage
-const initialPT = new PerformativeTransaction(null, [
-    [(x, prevPT) => prevPT ? prevPT.execute([x], 1)[1][0] : x + 1], // Transformation for first dimension
-    [(y, prevPT) => prevPT ? prevPT.execute([y], 1)[1][0] : y - 1]  // Transformation for second dimension
-]);
+// Some feature space (recurrent pattern of functions)
+const obj1 = { pitch: [function(x){return x+1}] };
 
-const nextPT = new PerformativeTransaction(initialPT, [
-    [(x, prevPT) => x * 2, (x, prevPT) => x + 3], // Transformations for first dimension
-    [(y, prevPT) => y / 2, (y, prevPT) => y - 2]  // Transformations for second dimension
-]);
+// Some feature space (recurrent pattern of functions) that will be applied to the indexes of the previous feature space
+const obj2 = { pitch: [function(x){return x+2}] };
 
-// User specifies the starting values for each dimension and the number of steps
-console.log(nextPT.execute([5, 10], 100)); // Starting at [5, 10] and applying 10 steps
+const testTransaction = new PerformativeTransaction(obj1, obj2);
+
+const testParams = { pitch: { startValue: 60, steps: 12 } };
+
+testTransaction.execute(testParams);
 
 
 
