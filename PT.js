@@ -27,7 +27,11 @@ class PerformativeTransaction{
 
             let thiskey = commonKeys[i];
 
+            /* let inputFeature = this.inputSpace[thiskey]; */
             let inputFeature = this.inputSpace[thiskey];
+            if (inputFeature.some(element => typeof element === 'object' && element.hasOwnProperty(thiskey))) {
+                inputFeature = inputFeature.map(element => element[thiskey]).flat(Infinity);
+            }
             let transformationFeature = this.transformations[thiskey];
             
             let actualTransformations = []; // the actual array of transformations (for the number of input steps)
@@ -76,4 +80,25 @@ const testParams = { pitch: { startValue: 1, steps: 12 } };
 const testTransaction = new PerformativeTransaction(obj1, obj2);
 
 // EXECUTE PERFORMATIVE TRANSACTION:
-console.log(testTransaction.execute(testParams, false));
+//console.log(JSON.stringify(testTransaction.execute(testParams, false), null, 2));
+//console.log(testTransaction.execute(testParams, false));
+
+// MAJOR-MINOR PT:
+
+function addOne(x){return x+1};
+function addTwo(x){return x+2};
+
+const majorScale = new PerformativeTransaction({ pitch: [addTwo, addTwo, addOne, addTwo, addTwo, addTwo, addOne] }, { pitch: [addOne] });
+//console.log(majorScale.execute({ pitch: { startValue: 60, steps: 7 } }, false));
+
+const minorScale = new PerformativeTransaction({ pitch: [addTwo, addOne, addTwo, addTwo, addOne, addTwo, addTwo]}, { pitch: [addOne] });
+//console.log(minorScale.execute({ pitch: { steps: 7 } })); // false can be omitted, and then startValue can also be omitted, then the function returns an object with a keyname and an array of functions
+
+const majorMinor = new PerformativeTransaction({ pitch: [majorScale.execute({ pitch: { steps: 7 }}, false), minorScale.execute({ pitch: { steps: 7 }}, false)] }, { pitch: [addOne] });
+//console.log(majorMinor.execute({ pitch: { startValue: 60, steps: 14 } }, true));
+
+const majorMinorResult = majorMinor.execute({ pitch: { steps: 14 } }, false)/* .pitch */;
+const majorMinorOnMajorMinor = new PerformativeTransaction(majorMinorResult, majorMinorResult);
+
+const majorMinorOnMajorMinorResult = majorMinorOnMajorMinor.execute({ pitch: { startValue: 60, steps: 50 } }, true);
+console.log(majorMinorOnMajorMinorResult);
